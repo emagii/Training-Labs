@@ -1,6 +1,6 @@
 #!/bin/sh
 TOPDIR=`pwd`
-LIBDIR=crosstool-ng-armv7a/.build/.build/arm-unknown-linux-uclibcgnueabihf/build/build-libc
+LIBDIR=../crosstool-ng-armv7a/.build/.build/arm-unknown-linux-uclibcgnueabihf/build/build-libc
 
 if [[ "x$1" == "x" ]]; then
 NFS_PATH=${HOME}/rootfs

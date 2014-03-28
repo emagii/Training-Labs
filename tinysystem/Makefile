@@ -38,7 +38,10 @@ configure:	$(MACHINE_CONFIG)
 compile:	$(BUSYBOX_IMAGE)
 
 install:	compile $(NFS_PATH)
-	@echo	""	>>	$(BUILD_SCRIPT)
+	@echo	"ln	-s	$(NFS_PATH)	$(BUSYBOX_DIR)/_install"	>>	$(BUILD_SCRIPT)
+	ln	-s	$(NFS_PATH)	$(BUSYBOX_DIR)/_install
+	@echo	"make	-C	$(BUSYBOX_DIR)	install"		>>	$(BUILD_SCRIPT)
+	make	-C	$(BUSYBOX_DIR)	install
 	chmod	a+x	$(BUILD_SCRIPT)
 
 source:		$(BUSYBOX_DIR)
@@ -61,9 +64,24 @@ $(MACHINE_CONFIG):	$(BOARD_CONFIG)	$(BUSYBOX_DIR)/.extracted
 
 $(BUSYBOX_IMAGE):	$(MACHINE_CONFIG)
 	$(MAKE) -C $(BUSYBOX_DIR)
+	cp	$(BUSYBOX_DIR)/$(BUSYBOX_IMAGE)	$(BUSYBOX_IMAGE)
 
 endif
 endif
+
+rootfs:	nfs install lib startup webserver
+
+lib:
+	./getlib.sh	$(NFS_PATH)
+
+startup:
+	mkdir	-p	$(NFS_PATH)/etc
+	mkdir	-p	$(NFS_PATH)/proc
+	mkdir	-p	$(NFS_PATH)/sys
+	rsync	-av	data/etc	$(NFS_PATH)
+
+webserver:
+	rsync	-av	data/www	$(NFS_PATH)
 
 nfs:
 	mkdir -p	$(NFS_PATH)
@@ -79,10 +97,22 @@ uEnv.txt:
 	@echo	"nfsroot=$(NFS_PATH)"			>>	$@
 	@echo	"bootargs=\$${console} root=/dev/nfs ip=\$${ipaddr} nfsroot=\$${serverip}:\$${nfsroot} rw"		>>	$@
 
-
-
 clean:
+	rm	-fr	$(BUSYBOX_DIR)
 	rm	-f	uEnv.txt	etc_export
+	rm	-fr	$(NFS_PATH)/bin
+	rm	-fr	$(NFS_PATH)/etc
+	rm	-fr	$(NFS_PATH)/lib/*.o
+	rm	-fr	$(NFS_PATH)/lib/*.a
+	rm	-fr	$(NFS_PATH)/lib/*.so
+	rm	-fr	$(NFS_PATH)/lib/*.so.*
+	rm	-fr	$(NFS_PATH)/lib/*.c
+	rm	-fr	$(NFS_PATH)/lib/*.os
+	rm	-fr	$(NFS_PATH)/proc
+	rm	-fr	$(NFS_PATH)/sbin
+	rm	-fr	$(NFS_PATH)/sys
+	rm	-fr	$(NFS_PATH)/usr
+	rm	-fr	$(NFS_PATH)/www
 
 help:
 	@echo "You need to have a valid arm-linux-gcc"
@@ -95,6 +125,8 @@ debug:
 	@echo	KERNEL_DT=$(KERNEL_DT)
 	@echo	$(MAKE) -C $(KERNEL_DIR)	$(BOARD_CONFIG)
 	@echo	TARGETS=$(TARGETS)
+	@echo	NFS_PATH=$(NFS_PATH)
+
 
 .PHONY:	clean help debug configure compile install source
 

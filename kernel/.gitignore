@@ -1,0 +1,5 @@
+*.dts
+build-kernel.sh
+linux-*
+zImage
+*~

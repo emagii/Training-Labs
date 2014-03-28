@@ -1,0 +1,5 @@
+#!/bin/sh
+
+mount -t proc	nodev	/proc
+mount -t sysfs	sys	/sys
+

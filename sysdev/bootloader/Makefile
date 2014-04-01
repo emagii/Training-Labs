@@ -4,7 +4,7 @@ BUILD_SCRIPT=build-u-boot.sh
 
 TOPDIR=`pwd`
 TARGETS=install
-MAKE=make $(XMAKEFLAGS)
+MAKE=make
 
 
 ifneq ("$(ARCH)","arm")
@@ -26,13 +26,14 @@ UBOOT=u-boot-$(UBOOT_VERSION)
 UBOOT_DIR=$(UBOOT)
 PATCH_DIR=../data
 UBOOT_SRC=$(UBOOT).tar.bz2
+UBOOT_PATCH=0001-arm-omap-i2c-don-t-zero-cnt-in-i2c_write.patch
 
 UBOOT_IMAGE=u-boot.img
 
-SRC_URI=ftp://ftp.denx.de/pub/u-boot/
+SRC_URI=ftp://ftp.denx.de/pub/u-boot
 
-MACHINE_CONFIG=$(UBOOT_DIR)/.config
-BOARD_CONFIG=beaglebone_defconfig
+MACHINE_CONFIG=$(UBOOT_DIR)/include/autoconf.mk
+BOARD_CONFIG=am335x_boneblack
 
 all:	setup	$(TARGETS)
 
@@ -42,16 +43,17 @@ unpack:		$(UBOOT_DIR)/.extracted
 
 configure:	$(MACHINE_CONFIG)
 
-compile:	$(UBOOT_IMAGE)	$(UBOOT_DT)
+compile:	$(UBOOT_DIR)/$(UBOOT_IMAGE)
 
 patched:	$(UBOOT_DIR)/.patched
 
-install:	compile modules	$(NFS_PATH)
-	install	-d	$(NFS_PATH)/boot
-	install	-m 0755	$(UBOOT_IMAGE)	$(NFS_PATH)/boot
-	install	-m 0755	$(UBOOT_DT)	$(NFS_PATH)/boot
-	@echo	"$(MAKE) -C $(UBOOT_DIR) INSTALL_MOD_PATH=$(NFS_PATH) modules_install"	>>	$(BUILD_SCRIPT)
-	$(MAKE) -C $(UBOOT_DIR) INSTALL_MOD_PATH=$(NFS_PATH) modules_install
+install:	$(UBOOT_DIR)/$(UBOOT_IMAGE)
+	@echo	"mkdir	-p	deploy"					>>	$(BUILD_SCRIPT)
+	@echo	"cp	$(UBOOT_DIR)/$(UBOOT_IMAGE)	deploy"		>>	$(BUILD_SCRIPT)
+	@echo	"cp	$(UBOOT_DIR)/MLO		deploy"		>>	$(BUILD_SCRIPT)
+	mkdir	-p	deploy
+	cp	$(UBOOT_DIR)/$(UBOOT_IMAGE)	deploy
+	cp	$(UBOOT_DIR)/MLO		deploy
 	chmod	a+x	$(BUILD_SCRIPT)
 
 source:		$(UBOOT_DIR)
@@ -70,7 +72,11 @@ $(UBOOT_DIR)/.extracted:	$(UBOOT_SRC)
 	touch	$@
 
 $(UBOOT_DIR)/.git:	$(UBOOT_DIR)/.extracted
-	@echo	"git	init; git add . ; git commit -m \"Initial Commit\" -s"	>>	$(BUILD_SCRIPT)
+	@echo	"cd	$(UBOOT_DIR)"					>>	$(BUILD_SCRIPT)
+	@echo	"git	init"						>>	$(BUILD_SCRIPT)
+	@echo	"git	add ."						>>	$(BUILD_SCRIPT)
+	@echo	"git	commit -m \"Initial Commit\" -s"		>>	$(BUILD_SCRIPT)
+	@echo	"cd	.."						>>	$(BUILD_SCRIPT)
 	(			\
 	cd $(UBOOT_DIR) ;	\
 	git init ;		\
@@ -79,21 +85,21 @@ $(UBOOT_DIR)/.git:	$(UBOOT_DIR)/.extracted
 	)
 
 $(UBOOT_DIR)/.patched:	$(UBOOT_DIR)/.git
-	@echo	"git	am	$(PATCH_DIR)/0001-arm-omap-i2c-don-t-zero-cnt-in-i2c_write.patch"	>>	$(BUILD_SCRIPT)
-	(cd	$(UBOOT_DIR) ;	\
-	git	am	$(PATCH_DIR)/0001-arm-omap-i2c-don-t-zero-cnt-in-i2c_write.patch	\
+	@echo	"cd	$(UBOOT_DIR)"					>>	$(BUILD_SCRIPT)
+	@echo	"git	am	$(PATCH_DIR)/$(UBOOT_PATCH)"		>>	$(BUILD_SCRIPT)
+	@echo	"cd	.."						>>	$(BUILD_SCRIPT)
+	(cd	$(UBOOT_DIR) ;					\
+	git	am	$(PATCH_DIR)/$(UBOOT_PATCH)		\
 	)
 	touch	$@
 
 $(MACHINE_CONFIG):	$(UBOOT_DIR)/.patched
-	@echo	"$(MAKE) -C $(UBOOT_DIR)	$(BOARD_CONFIG)"	>>	$(BUILD_SCRIPT)
-	$(MAKE) -C $(UBOOT_DIR)	$(BOARD_CONFIG)
+	@echo	"$(MAKE)	-C $(UBOOT_DIR)	$(BOARD_CONFIG)_config"	>>	$(BUILD_SCRIPT)
+	$(MAKE) -C $(UBOOT_DIR)	$(BOARD_CONFIG)_config
 
-$(UBOOT_IMAGE):	$(MACHINE_CONFIG)
-	@echo	"$(MAKE) -C $(UBOOT_DIR)"	>>	$(BUILD_SCRIPT)
-	$(MAKE) -C $(UBOOT_DIR)
-	cp	$(UBOOT_DIR)/$(UBOOT_IMAGE)	.
-
+$(UBOOT_DIR)/$(UBOOT_IMAGE):	$(MACHINE_CONFIG)
+	@echo	"$(MAKE)	-C $(UBOOT_DIR)"				>>	$(BUILD_SCRIPT)
+	$(MAKE)	-C $(UBOOT_DIR)
 
 $(NFS_PATH):
 	$(MAKE)	-C .. nfs
@@ -108,12 +114,12 @@ endif
 endif
 
 clean:
-	rm	-fr	$(UBOOT_DIR)	$(UBOOT_IMAGE)	$(UBOOT_DT)
-	rm	-fr	$(NFS_PATH)/boot/$(UBOOT_IMAGE)
-	rm	-fr	$(NFS_PATH)/boot/$(UBOOT_DT)
-	rm	-fr	$(NFS_PATH)/lib/modules
+	rm	-fr	$(UBOOT_DIR)
+	rm	-f	$(UBOOT_IMAGE)
 	rm	-f	*~
 	rm	-f	$(BUILD_SCRIPT)
+	rm	-f	$(UBOOT_SRC)
+	rm	-fr	deploy
 
 help:
 	@echo "You need to have a valid arm-linux-gcc"

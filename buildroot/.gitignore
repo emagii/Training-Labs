@@ -1,0 +1,6 @@
+buildroot*
+downloads
+uEnv.txt
+deploy
+build-buildroot.sh
+*~

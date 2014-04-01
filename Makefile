@@ -28,6 +28,7 @@ prepare:
 	$(ADDPKG)	picocom
 	$(ADDPKG)	python-dev
 	$(ADDPKG)	qemu-kvm-extras
+	$(ADDPKG)	squashfs-tools
 	$(ADDPKG)	subversion
 	$(ADDPKG)	texinfo
 	$(ADDPKG)	u-boot-tools

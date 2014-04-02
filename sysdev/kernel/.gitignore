@@ -2,4 +2,6 @@
 build-kernel.sh
 linux-*
 zImage
+uEnv.txt
 *~
+

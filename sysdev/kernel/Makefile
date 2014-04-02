@@ -28,19 +28,24 @@ KERNEL_DIR=$(KERNEL)
 KERNEL_SRC=$(KERNEL).tar.xz
 
 KERNEL_IMAGE=zImage
-KERNEL_DT=am335x-boneblack.dts
+KERNEL_DT=am335x-boneblack.dtb
 
+KERNEL_ENV=uEnv.txt
 
 SRC_URI=https://www.kernel.org/pub/linux/kernel/v3.x
 
 MACHINE_CONFIG=$(KERNEL_DIR)/.config
 BOARD_CONFIG=omap2plus_defconfig
 
-all:	setup	$(TARGETS)
+all:	setup	$(TARGETS)	environment
 
 configure:	$(MACHINE_CONFIG)
 
 compile:	$(KERNEL_IMAGE)	$(KERNEL_DT)
+
+tftp:
+	install	-m 0755	$(KERNEL_IMAGE)	/tftpboot
+	install	-m 0755	$(KERNEL_DT)	/tftpboot
 
 install:	compile modules	$(NFS_PATH)
 	install	-d	$(NFS_PATH)/boot
@@ -51,6 +56,8 @@ install:	compile modules	$(NFS_PATH)
 	chmod	a+x	$(BUILD_SCRIPT)
 
 source:		$(KERNEL_DIR)
+
+environment:	$(KERNEL_ENV)
 
 setup:
 	echo	"#!/bin/sh"						>	$(BUILD_SCRIPT)
@@ -82,6 +89,13 @@ $(KERNEL_DT):	$(KERNEL_IMAGE)
 modules:	$(KERNEL_IMAGE)
 	@echo	"$(MAKE) -C $(KERNEL_DIR)	modules"		>>	$(BUILD_SCRIPT)
 	$(MAKE) -C $(KERNEL_DIR)	modules
+
+$(KERNEL_ENV):
+	@echo		"ipaddr=$(IPADDR)"				>	$@
+	@echo		"serverip=$(SERVER_IP)"				>>	$@
+	@echo -n	"uenvcmd=tftp 80000000 zImage; "		>>	$@
+	@echo -n	"tftp 81000000 am335x-boneblack.dtb; "		>>	$@
+	@echo		"bootz 80000000 - 81000000;"			>>	$@
 
 $(NFS_PATH):
 	$(MAKE)	-C .. nfs
@@ -115,4 +129,4 @@ debug:
 	@echo	$(MAKE) -C $(KERNEL_DIR)	$(BOARD_CONFIG)
 	@echo	
 	
-.PHONY:	clean help debug configure compile install source
+.PHONY:	clean help debug configure compile install source environment

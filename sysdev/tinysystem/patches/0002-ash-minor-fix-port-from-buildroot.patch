@@ -1,0 +1,26 @@
+From c01a0199e96a508559894ef06ed9a0c9ee76345b Mon Sep 17 00:00:00 2001
+From: Ulf Samuelsson <ulf@emagii.com>
+Date: Wed, 2 Apr 2014 19:30:36 +0200
+Subject: [PATCH 2/4] ash minor fix: port from buildroot
+
+Signed-off-by: Ulf Samuelsson <ulf@emagii.com>
+---
+ shell/ash.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/shell/ash.c b/shell/ash.c
+index 71ef9a6..04ba447 100644
+--- a/shell/ash.c
++++ b/shell/ash.c
+@@ -13014,7 +13014,7 @@ init(void)
+ 		setvar2("PPID", utoa(getppid()));
+ #if ENABLE_ASH_BASH_COMPAT
+ 		p = lookupvar("SHLVL");
+-		setvar2("SHLVL", utoa(p ? atoi(p) + 1 : 1));
++		setvar("SHLVL", utoa((p ? atoi(p) : 0) + 1), VEXPORT);
+ #endif
+ 		p = lookupvar("PWD");
+ 		if (p) {
+-- 
+1.7.9.5
+

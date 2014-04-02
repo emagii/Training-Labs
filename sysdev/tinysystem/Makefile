@@ -22,7 +22,7 @@ else
 
 
 SRC_URI=http://www.busybox.net/downloads/
-BUSYBOX_VERSION=1.21.1
+BUSYBOX_VERSION=1.22.1
 BUSYBOX=busybox-$(BUSYBOX_VERSION)
 BUSYBOX_SRC=$(BUSYBOX).tar.bz2
 BUSYBOX_DIR=$(BUSYBOX)
@@ -33,6 +33,10 @@ BUSYBOX_IMAGE=busybox
 
 all:	setup	$(TARGETS)
 
+source:		$(BUSYBOX_DIR)/.git
+
+patch:		$(BUSYBOX_DIR)/.patches
+
 configure:	$(MACHINE_CONFIG)
 
 compile:	$(BUSYBOX_IMAGE)
@@ -41,10 +45,9 @@ install:	compile $(NFS_PATH)
 	@echo	"ln	-s	$(NFS_PATH)	$(BUSYBOX_DIR)/_install"	>>	$(BUILD_SCRIPT)
 	ln	-s	$(NFS_PATH)	$(BUSYBOX_DIR)/_install
 	@echo	"make	-C	$(BUSYBOX_DIR)	install"		>>	$(BUILD_SCRIPT)
-	make	-C	$(BUSYBOX_DIR)	install
+	sudo 	make	-C	$(BUSYBOX_DIR)	install
+	mkdir	-p	$(NFS_PATH)/dev
 	chmod	a+x	$(BUILD_SCRIPT)
-
-source:		$(BUSYBOX_DIR)
 
 setup:
 	echo	"#!/bin/sh"						>	$(BUILD_SCRIPT)
@@ -59,7 +62,13 @@ $(BUSYBOX_DIR)/.extracted:	$(BUSYBOX_SRC)
 	tar	-jxvf	$(BUSYBOX_SRC)
 	touch	$@
 
-$(MACHINE_CONFIG):	$(BOARD_CONFIG)	$(BUSYBOX_DIR)/.extracted
+$(BUSYBOX_DIR)/.git:	$(BUSYBOX_DIR)/.extracted
+	(cd $(BUSYBOX_DIR) ; git init ; git add . ; git commit -m "Initital Commit" -s)
+
+$(BUSYBOX_DIR)/.patches:	$(BUSYBOX_DIR)/.git
+	(cd $(BUSYBOX_DIR) ; git am ../patches/*.patch)
+
+$(MACHINE_CONFIG):	$(BOARD_CONFIG)	$(BUSYBOX_DIR)/.git
 	cp	$(BOARD_CONFIG)	$(MACHINE_CONFIG)
 
 $(BUSYBOX_IMAGE):	$(MACHINE_CONFIG)

@@ -1,0 +1,34 @@
+From 72f05211485fd18b08c9060f2c8df9873dedc148 Mon Sep 17 00:00:00 2001
+From: Ulf Samuelsson <ulf@emagii.com>
+Date: Wed, 2 Apr 2014 19:31:54 +0200
+Subject: [PATCH 4/4] iplink: port from buildroot
+
+Signed-off-by: Ulf Samuelsson <ulf@emagii.com>
+---
+ networking/libiproute/iplink.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/networking/libiproute/iplink.c b/networking/libiproute/iplink.c
+index 1d13967..5077012 100644
+--- a/networking/libiproute/iplink.c
++++ b/networking/libiproute/iplink.c
+@@ -31,6 +31,16 @@
+ #ifndef IFLA_LINKINFO
+ # define IFLA_LINKINFO 18
+ # define IFLA_INFO_KIND 1
++# define IFLA_INFO_DATA 2
++#endif
++
++#ifndef IFLA_VLAN_MAX
++# define IFLA_VLAN_ID 1
++# define IFLA_VLAN_FLAGS 2
++struct ifla_vlan_flags {
++	uint32_t	flags;
++	uint32_t	mask;
++};
+ #endif
+ 
+ /* taken from linux/sockios.h */
+-- 
+1.7.9.5
+

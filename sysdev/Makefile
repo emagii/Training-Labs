@@ -31,9 +31,20 @@ prepare:
 	$(ADDPKG)	squashfs-tools
 	$(ADDPKG)	subversion
 	$(ADDPKG)	texinfo
+	$(ADDPKG)	tftpd
+	$(ADDPKG)	tftp
 	$(ADDPKG)	u-boot-tools
 	$(ADDPKG)	vim
+	sudo		adduser	$USER	dialout
 
+
+tftp:
+	@sudo		mkdir	-p		/etc/xinetd.d
+	@(if ! [ -e /etc/xinetd.d/tftp ] ; then 			\
+		sudo	cp	network/tftp	/etc/xinetd.d;		\
+	 else								\
+		echo "/etc/xinetd.d/tftp exists";			\
+	 fi)
 
 toolchain:
 	git clone	https://github.com/emagii/crosstool-ng-armv7a.git

@@ -28,6 +28,8 @@ PATCH_DIR=../data
 UBOOT_SRC=$(UBOOT).tar.bz2
 UBOOT_PATCH=0001-arm-omap-i2c-don-t-zero-cnt-in-i2c_write.patch
 
+UBOOT_ENV=uEnv.txt
+
 UBOOT_IMAGE=u-boot.img
 
 SRC_URI=ftp://ftp.denx.de/pub/u-boot
@@ -35,7 +37,7 @@ SRC_URI=ftp://ftp.denx.de/pub/u-boot
 MACHINE_CONFIG=$(UBOOT_DIR)/include/autoconf.mk
 BOARD_CONFIG=am335x_boneblack
 
-all:	setup	$(TARGETS)
+all:	setup	$(TARGETS)	environment
 
 download:	$(UBOOT_SRC)
 
@@ -47,7 +49,7 @@ compile:	$(UBOOT_DIR)/$(UBOOT_IMAGE)
 
 patched:	$(UBOOT_DIR)/.patched
 
-install:	$(UBOOT_DIR)/$(UBOOT_IMAGE)
+install:	$(UBOOT_DIR)/$(UBOOT_IMAGE)	
 	@echo	"mkdir	-p	deploy"					>>	$(BUILD_SCRIPT)
 	@echo	"cp	$(UBOOT_DIR)/$(UBOOT_IMAGE)	deploy"		>>	$(BUILD_SCRIPT)
 	@echo	"cp	$(UBOOT_DIR)/MLO		deploy"		>>	$(BUILD_SCRIPT)
@@ -57,6 +59,8 @@ install:	$(UBOOT_DIR)/$(UBOOT_IMAGE)
 	chmod	a+x	$(BUILD_SCRIPT)
 
 source:		$(UBOOT_DIR)
+
+environment:	$(UBOOT_ENV)
 
 setup:
 	echo	"#!/bin/sh"						>	$(BUILD_SCRIPT)
@@ -105,6 +109,10 @@ $(NFS_PATH):
 	$(MAKE)	-C .. nfs
 
 #	mkdir	-p	$(NFS_PATH)
+
+$(UBOOT_ENV):
+	@echo	"ipaddr=$(IPADDR)"						>	$@
+	@echo	"serverip=$(SERVER_IP)"						>>	$@
 
 prepare:	$(NFS_PATH)
 	$(MAKE)	-C .. prepare

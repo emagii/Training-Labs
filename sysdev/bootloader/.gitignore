@@ -1,3 +1,4 @@
 u-boot*
 build-u-boot.sh
 deploy
+uEnv.txt

@@ -4,3 +4,4 @@ uEnv.txt
 uClibc.tar
 !busybox*.config
 *~
+eglibc.tar

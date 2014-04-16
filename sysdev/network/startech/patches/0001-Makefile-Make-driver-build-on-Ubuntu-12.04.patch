@@ -1,0 +1,28 @@
+From f322813558658315c846748b31821929cd576f90 Mon Sep 17 00:00:00 2001
+From: Ulf Samuelsson <ulf@emagii.com>
+Date: Wed, 16 Apr 2014 16:14:02 +0200
+Subject: [PATCH] Makefile: Make driver build on Ubuntu-12.04
+
+Signed-off-by: Ulf Samuelsson <ulf@emagii.com>
+---
+ Makefile |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index c193e39..2543dce 100644
+--- a/Makefile
++++ b/Makefile
+@@ -33,7 +33,9 @@ $(TARGET).o: $(OBJS)
+ 	$(LD) $(LD_RFLAG) -r -o $@ $(OBJS)
+ 
+ install:
+-	su -c "cp -v $(TARGET).ko $(DEST) && /sbin/depmod -a"
++	sudo mkdir -p $(DEST)
++	sudo cp -v $(TARGET).ko $(DEST)
++	sudo /sbin/depmod -a
+ 
+ clean:
+ 	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) clean
+-- 
+1.7.9.5
+

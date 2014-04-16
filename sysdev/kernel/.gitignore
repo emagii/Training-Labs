@@ -1,7 +1,9 @@
-*.dts
 build-kernel.sh
 linux-*
 zImage
+*.dts
+*.dtb
 uEnv.txt
 *~
+deploy
 

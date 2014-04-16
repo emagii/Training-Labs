@@ -1,5 +1,6 @@
 include	../host.mk
 
+INSTALL_PATH=$(NFS_PATH)
 BUILD_SCRIPT=build-kernel.sh
 
 TOPDIR=`pwd`
@@ -27,6 +28,8 @@ KERNEL=linux-$(KERNEL_VERSION)
 KERNEL_DIR=$(KERNEL)
 KERNEL_SRC=$(KERNEL).tar.xz
 
+KERNEL_IMAGE_DIR=$(KERNEL_DIR)/arch/arm/boot
+
 KERNEL_IMAGE=zImage
 KERNEL_DT=am335x-boneblack.dtb
 
@@ -39,25 +42,29 @@ BOARD_CONFIG=omap2plus_defconfig
 
 all:	setup	$(TARGETS)	environment
 
-configure:	$(MACHINE_CONFIG)
-
-compile:	$(KERNEL_IMAGE)	$(KERNEL_DT)
-
-tftp:
-	install	-m 0755	$(KERNEL_IMAGE)	/tftpboot
-	install	-m 0755	$(KERNEL_DT)	/tftpboot
-
-install:	compile modules	$(NFS_PATH)
-	install	-d	$(NFS_PATH)/boot
-	install	-m 0755	$(KERNEL_IMAGE)	$(NFS_PATH)/boot
-	install	-m 0755	$(KERNEL_DT)	$(NFS_PATH)/boot
-	@echo	"$(MAKE) -C $(KERNEL_DIR) INSTALL_MOD_PATH=$(NFS_PATH) modules_install"	>>	$(BUILD_SCRIPT)
-	$(MAKE) -C $(KERNEL_DIR) INSTALL_MOD_PATH=$(NFS_PATH) modules_install
-	chmod	a+x	$(BUILD_SCRIPT)
-
 source:		$(KERNEL_DIR)
 
 environment:	$(KERNEL_ENV)
+
+configure:	$(MACHINE_CONFIG)
+
+compile:	deploy/.kernel deploy/.modules
+
+tftp:
+	install	-m 0755	deploy/$(KERNEL_IMAGE)	/tftpboot
+	install	-m 0755	deploy/$(KERNEL_DT)	/tftpboot
+
+install:	compile	$(NFS_PATH)
+	@echo	"install	-d	$(NFS_PATH)/boot"				>>	$(BUILD_SCRIPT)
+	install	-d	$(NFS_PATH)/boot
+	@echo	"install	-m 0755	deploy/$(KERNEL_IMAGE)	$(NFS_PATH)/boot"	>>	$(BUILD_SCRIPT)
+	install	-m 0755	deploy/$(KERNEL_IMAGE)	$(NFS_PATH)/boot
+	@echo	"install	-m 0755	deploy/$(KERNEL_DT)	$(NFS_PATH)/boot"	>>	$(BUILD_SCRIPT)
+	install	-m 0755	deploy/$(KERNEL_DT)	$(NFS_PATH)/boot
+	@echo	"$(MAKE) -C $(KERNEL_DIR) INSTALL_MOD_PATH=$(NFS_PATH) modules_install"	>>	$(BUILD_SCRIPT)
+	sudo $(MAKE) -C $(KERNEL_DIR) ARCH=arm INSTALL_MOD_PATH=$(INSTALL_PATH) modules_install
+	sudo chmod	-R 777	$(INSTALL_PATH)
+	chmod	a+x	$(BUILD_SCRIPT)
 
 setup:
 	echo	"#!/bin/sh"						>	$(BUILD_SCRIPT)
@@ -76,19 +83,28 @@ $(MACHINE_CONFIG):	$(KERNEL_DIR)/.extracted
 	@echo	"$(MAKE) -C $(KERNEL_DIR)	$(BOARD_CONFIG)"	>>	$(BUILD_SCRIPT)
 	$(MAKE) -C $(KERNEL_DIR)	$(BOARD_CONFIG)
 
-$(KERNEL_IMAGE):	$(MACHINE_CONFIG)
+$(KERNEL_IMAGE_DIR)/$(KERNEL_IMAGE):	$(MACHINE_CONFIG)
 	@echo	"$(MAKE) -C $(KERNEL_DIR)	LOADADDR=0x80008000 $@"	>>	$(BUILD_SCRIPT)
-	$(MAKE) -C $(KERNEL_DIR)	LOADADDR=0x80008000 $@
-	cp	$(KERNEL_DIR)/arch/arm/boot/$(KERNEL_IMAGE)	.
+	$(MAKE) -C $(KERNEL_DIR)	LOADADDR=0x80008000 $(KERNEL_IMAGE)
 
-$(KERNEL_DT):	$(KERNEL_IMAGE)
+$(KERNEL_IMAGE_DIR)/dts/$(KERNEL_DT):	$(KERNEL_IMAGE_DIR)/$(KERNEL_IMAGE)
 	@echo	"$(MAKE) -C $(KERNEL_DIR)	dtbs"			>>	$(BUILD_SCRIPT)
 	$(MAKE) -C $(KERNEL_DIR)	dtbs
 	cp	$(KERNEL_DIR)/arch/arm/boot/dts/$(KERNEL_DT)	.
 
-modules:	$(KERNEL_IMAGE)
+deploy/.modules:	$(KERNEL_IMAGE_DIR)/$(KERNEL_IMAGE)
 	@echo	"$(MAKE) -C $(KERNEL_DIR)	modules"		>>	$(BUILD_SCRIPT)
 	$(MAKE) -C $(KERNEL_DIR)	modules
+	touch	$@
+
+deploy/.kernel:	$(KERNEL_IMAGE_DIR)/$(KERNEL_IMAGE) $(KERNEL_IMAGE_DIR)/dts/$(KERNEL_DT)
+	@echo	"mkdir	-p					deploy"	>>	$(BUILD_SCRIPT)
+	mkdir	-p					deploy
+	@echo	"cp	$(KERNEL_IMAGE_DIR)/$(KERNEL_IMAGE)	deploy"	>>	$(BUILD_SCRIPT)
+	cp	$(KERNEL_IMAGE_DIR)/$(KERNEL_IMAGE)	deploy
+	@echo	"cp	$(KERNEL_IMAGE_DIR)/dts/$(KERNEL_DT)	deploy"	>>	$(BUILD_SCRIPT)
+	cp	$(KERNEL_IMAGE_DIR)/dts/$(KERNEL_DT)	deploy
+	touch	$@
 
 $(KERNEL_ENV):
 	@echo		"ipaddr=$(IPADDR)"				>	$@
@@ -127,6 +143,9 @@ debug:
 	@echo	KERNEL_IMAGE=$(KERNEL_IMAGE)
 	@echo	KERNEL_DT=$(KERNEL_DT)
 	@echo	$(MAKE) -C $(KERNEL_DIR)	$(BOARD_CONFIG)
-	@echo	
+	@echo	NFS_PATH=$(NFS_PATH)
+	@echo	INSTALL_PATH="$(INSTALL_PATH)"
+	@sudo echo	INSTALL_PATH="$(INSTALL_PATH)"
+
 	
 .PHONY:	clean help debug configure compile install source environment

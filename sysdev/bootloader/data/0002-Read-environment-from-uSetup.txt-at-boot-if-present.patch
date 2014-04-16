@@ -1,0 +1,71 @@
+From 1da8b4826f30e42908c9a39e8d8117a5c0edc8d1 Mon Sep 17 00:00:00 2001
+From: Ulf Samuelsson <ulf@emagii.com>
+Date: Wed, 9 Apr 2014 17:30:37 +0200
+Subject: [PATCH] Read environment from uSetup.txt at boot (if present)
+
+Signed-off-by: Ulf Samuelsson <ulf@emagii.com>
+---
+ include/configs/am335x_evm.h |   26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+
+diff --git a/include/configs/am335x_evm.h b/include/configs/am335x_evm.h
+index c2ba7e3..3aa1a1d 100644
+--- a/include/configs/am335x_evm.h
++++ b/include/configs/am335x_evm.h
+@@ -97,7 +97,9 @@
+ 		"nfsroot=${serverip}:${rootpath},${nfsopts} rw " \
+ 		"ip=dhcp\0" \
+ 	"bootenv=uEnv.txt\0" \
++	"setupenv=uSetup.txt\0" \
+ 	"loadbootenv=load mmc ${mmcdev} ${loadaddr} ${bootenv}\0" \
++	"loadsetupenv=load mmc ${mmcdev} ${loadaddr} ${setupenv}\0" \
+ 	"importbootenv=echo Importing environment from mmc ...; " \
+ 		"env import -t $loadaddr $filesize\0" \
+ 	"dfu_alt_info_ram=" DFU_ALT_INFO_RAM "\0" \
+@@ -137,12 +139,33 @@
+ 				"run mmcloados;" \
+ 			"fi;" \
+ 		"fi;\0" \
++	"mmcsetup=" \
++		"mmc dev ${mmcdev}; " \
++		"if mmc rescan; then " \
++			"echo SD/MMC found on device ${mmcdev};" \
++			"if run loadsetupenv; then " \
++				"echo Setup environment from ${setupenv};" \
++				"run importbootenv;" \
++			"fi;" \
++		"else " \
++			"setenv mmcdev 1; " \
++			"mmc dev ${mmcdev}; " \
++			"if mmc rescan; then " \
++				"echo SD/MMC found on device ${mmcdev};" \
++				"if run loadsetupenv; then " \
++					"echo Setup environment from ${setupenv};" \
++					"run importbootenv;" \
++				"fi;" \
++			"fi;" \
++			"setenv mmcdev 0; " \
++		"fi\0" \
+ 	"spiboot=echo Booting from spi ...; " \
+ 		"run spiargs; " \
+ 		"sf probe ${spibusno}:0; " \
+ 		"sf read ${loadaddr} ${spisrcaddr} ${spiimgsize}; " \
+ 		"bootz ${loadaddr}\0" \
+ 	"netboot=echo Booting from network ...; " \
++		"run findfdt; " \
+ 		"setenv autoload no; " \
+ 		"dhcp; " \
+ 		"tftp ${loadaddr} ${bootfile}; " \
+@@ -174,6 +197,9 @@
+ 	"run mmcboot;" \
+ 	"run nandboot;"
+ 
++#define CONFIG_PREBOOT \
++	"run mmcsetup;"
++
+ /* NS16550 Configuration */
+ #define CONFIG_SYS_NS16550_COM1		0x44e09000	/* Base EVM has UART0 */
+ #define CONFIG_SYS_NS16550_COM2		0x48022000	/* UART1 */
+-- 
+1.7.9.5
+

@@ -1,4 +1,4 @@
-include	host.mk
+include	../host.mk
 
 nfs:
 	mkdir -p	$(NFS_PATH)
@@ -13,3 +13,6 @@ tftp:
 	 else								\
 		echo "/etc/xinetd.d/tftp exists";			\
 	 fi)
+
+startech-usb:
+	make	-C startech	install

@@ -1,0 +1,9 @@
+adt_installer.tar.bz2
+adt-installer/*
+downloads
+environment-*
+
+poky*
+Angstrom-1.4
+yocto.sh
+

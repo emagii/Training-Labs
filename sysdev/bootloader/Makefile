@@ -29,6 +29,7 @@ UBOOT_SRC=$(UBOOT).tar.bz2
 UBOOT_PATCH=0001-arm-omap-i2c-don-t-zero-cnt-in-i2c_write.patch
 
 UBOOT_ENV=uEnv.txt
+UBOOT_SETUP=uSetup.txt
 
 UBOOT_IMAGE=u-boot.img
 
@@ -49,7 +50,7 @@ compile:	$(UBOOT_DIR)/$(UBOOT_IMAGE)
 
 patched:	$(UBOOT_DIR)/.patched
 
-install:	$(UBOOT_DIR)/$(UBOOT_IMAGE)	
+install:	$(UBOOT_DIR)/$(UBOOT_IMAGE)	$(UBOOT_ENV)
 	@echo	"mkdir	-p	deploy"					>>	$(BUILD_SCRIPT)
 	@echo	"cp	$(UBOOT_DIR)/$(UBOOT_IMAGE)	deploy"		>>	$(BUILD_SCRIPT)
 	@echo	"cp	$(UBOOT_DIR)/MLO		deploy"		>>	$(BUILD_SCRIPT)
@@ -57,12 +58,16 @@ install:	$(UBOOT_DIR)/$(UBOOT_IMAGE)
 	cp	$(UBOOT_DIR)/$(UBOOT_IMAGE)	deploy
 	cp	$(UBOOT_DIR)/MLO		deploy
 	chmod	a+x	$(BUILD_SCRIPT)
+	cp	$(BUILD_SCRIPT)			deploy
+	cp	$(UBOOT_ENV)			deploy
 
-source:		$(UBOOT_DIR)
+source:		$(UBOOT_DIR)/.extracted
 
-environment:	$(UBOOT_ENV)
+environment:	$(UBOOT_SETUP)	$(UBOOT_ENV)
 
-setup:
+setup:	$(BUILD_SCRIPT)
+
+$(BUILD_SCRIPT):
 	echo	"#!/bin/sh"						>	$(BUILD_SCRIPT)
 
 $(UBOOT_SRC):
@@ -75,7 +80,7 @@ $(UBOOT_DIR)/.extracted:	$(UBOOT_SRC)
 	tar	-jxvf	$(UBOOT_SRC)
 	touch	$@
 
-$(UBOOT_DIR)/.git:	$(UBOOT_DIR)/.extracted
+$(UBOOT_DIR)/.gitrepo:	$(UBOOT_DIR)/.extracted
 	@echo	"cd	$(UBOOT_DIR)"					>>	$(BUILD_SCRIPT)
 	@echo	"git	init"						>>	$(BUILD_SCRIPT)
 	@echo	"git	add ."						>>	$(BUILD_SCRIPT)
@@ -87,13 +92,14 @@ $(UBOOT_DIR)/.git:	$(UBOOT_DIR)/.extracted
 	git add .;		\
 	git commit -m "Initial Commit" -s	\
 	)
+	touch	$@
 
-$(UBOOT_DIR)/.patched:	$(UBOOT_DIR)/.git
+$(UBOOT_DIR)/.patched:	$(UBOOT_DIR)/.gitrepo
 	@echo	"cd	$(UBOOT_DIR)"					>>	$(BUILD_SCRIPT)
-	@echo	"git	am	$(PATCH_DIR)/$(UBOOT_PATCH)"		>>	$(BUILD_SCRIPT)
+	@echo	"git	am	$(PATCH_DIR)/*.patch"			>>	$(BUILD_SCRIPT)
 	@echo	"cd	.."						>>	$(BUILD_SCRIPT)
 	(cd	$(UBOOT_DIR) ;					\
-	git	am	$(PATCH_DIR)/$(UBOOT_PATCH)		\
+	git	am	$(PATCH_DIR)/*.patch			\
 	)
 	touch	$@
 
@@ -102,7 +108,7 @@ $(MACHINE_CONFIG):	$(UBOOT_DIR)/.patched
 	$(MAKE) -C $(UBOOT_DIR)	$(BOARD_CONFIG)_config
 
 $(UBOOT_DIR)/$(UBOOT_IMAGE):	$(MACHINE_CONFIG)
-	@echo	"$(MAKE)	-C $(UBOOT_DIR)"				>>	$(BUILD_SCRIPT)
+	@echo	"$(MAKE)	-C $(UBOOT_DIR)"			>>	$(BUILD_SCRIPT)
 	$(MAKE)	-C $(UBOOT_DIR)
 
 $(NFS_PATH):
@@ -110,9 +116,35 @@ $(NFS_PATH):
 
 #	mkdir	-p	$(NFS_PATH)
 
+$(UBOOT_SETUP):
+	@echo	"ipaddr=$(IPADDR)"					>	$@
+	@echo	"serverip=$(SERVER_IP)"					>>	$@
+	@echo	"loadaddr=0x80200000"					>>	$@
+	@echo	"fdtaddr=0x80F80000"					>>	$@
+	@echo	"HOME=/home/ulf"					>>	$@
+	@echo	"console=ttyO0,115200n8"				>>	$@
+	@echo	"nfsopts=nolock"					>>	$@
+	@echo	'netargs=setenv bootargs console=$${console} root=/dev/nfs nfsroot=$${serverip}:$${HOME}/rootfs,$${nfsopts} rw ip=$${ipaddr}'	>>	$@
+	@echo	'tftp_kernel=tftp $${loadaddr} zImage'			>>	$@
+	@echo	'tftp_dtb=tftp $${fdtaddr} am335x-boneblack.dtb'	>>	$@
+	@echo	'bootkernel=bootz $${loadaddr} - $${fdtaddr}'		>>	$@
+	@echo	"nandboot=echo NAND boot disabled"			>>	$@
+
 $(UBOOT_ENV):
-	@echo	"ipaddr=$(IPADDR)"						>	$@
-	@echo	"serverip=$(SERVER_IP)"						>>	$@
+	@echo	"ipaddr=$(IPADDR)"					>	$@
+	@echo	"serverip=$(SERVER_IP)"					>>	$@
+	@echo	"loadaddr=0x80200000"					>>	$@
+	@echo	"fdtaddr=0x80F80000"					>>	$@
+	@echo	"HOME=/home/ulf"					>>	$@
+	@echo	"console=ttyO0,115200n8"				>>	$@
+	@echo	"nfsopts=nolock"					>>	$@
+	@echo	'netargs=setenv bootargs console=$${console} root=/dev/nfs nfsroot=$${serverip}:$${HOME}/rootfs,$${nfsopts} rw ip=$${ipaddr}'	>>	$@
+	@echo	'tftp_kernel=tftp $${loadaddr} zImage'			>>	$@
+	@echo	'tftp_dtb=tftp $${fdtaddr} am335x-boneblack.dtb'	>>	$@
+	@echo	'bootkernel=bootz $${loadaddr} - $${fdtaddr}'		>>	$@
+	@echo	'uenvcmd=run tftp_kernel tftp_dtb netargs bootkernel'	>>	$@
+	@echo	"mmcboot=echo MMC boot disabled"			>>	$@
+	@echo	"nandboot=echo NAND boot disabled"			>>	$@
 
 prepare:	$(NFS_PATH)
 	$(MAKE)	-C .. prepare
@@ -126,8 +158,10 @@ clean:
 	rm	-f	$(UBOOT_IMAGE)
 	rm	-f	*~
 	rm	-f	$(BUILD_SCRIPT)
-	rm	-f	$(UBOOT_SRC)
 	rm	-fr	deploy
+
+distclean:	clean
+	rm	-f	$(UBOOT_SRC)
 
 help:
 	@echo "You need to have a valid arm-linux-gcc"

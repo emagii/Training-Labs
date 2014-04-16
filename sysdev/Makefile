@@ -19,6 +19,8 @@ prepare:
 	$(ADDPKG)	ia32-libs
 	$(ADDPKG)	libexpat1-dev
 	$(ADDPKG)	libglade2-dev
+	$(ADDPKG)	libglib2.0-dev
+	$(ADDPKG)	libgtk2.0-dev
 	$(ADDPKG)	libncurses5-dev
 	$(ADDPKG)	libqt4-dev
 	$(ADDPKG)	libtool
@@ -38,6 +40,7 @@ prepare:
 	sudo		adduser	$USER	dialout
 
 
+
 tftp:
 	@sudo		mkdir	-p		/etc/xinetd.d
 	@(if ! [ -e /etc/xinetd.d/tftp ] ; then 			\
@@ -48,7 +51,57 @@ tftp:
 
 toolchain:
 	git clone	https://github.com/emagii/crosstool-ng-armv7a.git
+
+cross:	sdk
+
+Angstrom-1.4:
+	git clone https://github.com/Angstrom-distribution/setup-scripts.git	Angstrom-1.4
+	(cd Angstrom-1.4 ; git checkout -b v2013.06 origin/angstrom-v2013.06-yocto1.4)
+
+Angstrom-1.4/Makefile:	toolchain/Angstrom.mak	Angstrom-1.4
+	cp	toolchain/Angstrom.mak	Angstrom-1.4/Makefile
+
+Angstrom-SDK:
 	
+
+poky-dora:
+	git clone git://git.yoctoproject.org/poky poky-dora
+	(cd poky-dora ; git checkout -b dora origin/dora)
+
+poky-dora/Makefile:	toolchain/poky/Yocto.mak
+	cp	toolchain/poky/Yocto.mak	poky-dora/Makefile
+
+poky:
+	git clone git://git.yoctoproject.org/poky
+
+poky/Makefile:	toolchain/poky/Yocto.mak
+	cp	toolchain/poky/Yocto.mak	poky/Makefile
+
+
+adt_installer.tar.bz2:
+	wget http://downloads.yoctoproject.org/releases/yocto/yocto-1.5.1/adt-installer/adt_installer.tar.bz2
+
+adt-installer:	adt_installer.tar.bz2
+	tar -jxvf	$<
+
+/opt/poky:
+	sudo	mkdir	-p		/opt/poky
+	sudo	chown	$USER:$USER	/opt/poky
+	echo	"run ./adt-installer"	
+
+adt-installer/adt_installer.conf:	toolchain/adt_installer.conf
+	cp	toolchain/adt_installer.conf	adt-installer/adt_installer.conf
+
+yocto-toolchain:
+	wget	http://downloads.yoctoproject.org/releases/yocto/yocto-1.5.1/toolchain/i686/poky-eglibc-i686-core-image-sato-armv7a-vfp-neon-toolchain-1.5.1.sh
+	wget	http://downloads.yoctoproject.org/releases/yocto/yocto-1.5.1/toolchain/x86_64/poky-eglibc-x86_64-core-image-sato-armv7a-vfp-neon-toolchain-1.5.1.sh
+	chmod a+x poky*.sh
+
+test-yocto:	/opt/poky	adt-installer	adt-installer/adt_installer.conf
+	(cd	adt-installer ; ./adt_installer)
+
+sdk:	Angstrom-1.4/Makefile
+	make	-C Angstrom-1.4	config
 
 nfs:
 	mkdir -p	$(NFS_PATH)
@@ -57,4 +110,4 @@ nfs:
 restart-nfs:
 	sudo	service nfs-kernel-server restart
 
-
+.PHONY:	cross nfs

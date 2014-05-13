@@ -1,4 +1,4 @@
-ADDPKG=sudo apt-get install
+ADDPKG=sudo apt-get -y install
 
 include	host.mk
 
@@ -31,13 +31,15 @@ prepare:
 	$(ADDPKG)	python-dev
 	$(ADDPKG)	qemu-kvm-extras
 	$(ADDPKG)	squashfs-tools
+	$(ADDPKG)	samba
+	$(ADDPKG)	system-config-samba
 	$(ADDPKG)	subversion
 	$(ADDPKG)	texinfo
 	$(ADDPKG)	tftpd
 	$(ADDPKG)	tftp
 	$(ADDPKG)	u-boot-tools
 	$(ADDPKG)	vim
-	sudo		adduser	$USER	dialout
+	sudo		adduser	${USER}	dialout
 
 
 

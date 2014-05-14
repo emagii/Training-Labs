@@ -10,9 +10,11 @@ prepare:
 	$(ADDPKG)	automake
 	$(ADDPKG)	bison
 	$(ADDPKG)	build-essential
+	$(ADDPKG)	chrpath
 	$(ADDPKG)	compizconfig-settings-manager
 	$(ADDPKG)	curl
 	$(ADDPKG)	cvs
+	$(ADDPKG)	diffstat
 	$(ADDPKG)	emacs
 	$(ADDPKG)	flex
 	$(ADDPKG)	gawk

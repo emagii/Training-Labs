@@ -6,6 +6,7 @@ HOME=/home/ulf
 console=ttyO0,115200n8
 nfsopts=nolock
 netargs=setenv bootargs console=${console} root=/dev/nfs nfsroot=${serverip}:${HOME}/rootfs,${nfsopts} rw ip=${ipaddr}
+mmcrootfstype=squashfs
 tftp_kernel=tftp ${loadaddr} zImage
 tftp_dtb=tftp ${fdtaddr} am335x-boneblack.dtb
 bootkernel=bootz ${loadaddr} - ${fdtaddr}

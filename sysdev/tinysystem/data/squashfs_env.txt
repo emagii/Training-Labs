@@ -1,0 +1,3 @@
+setenv bootargs 'console=ttyO0,115200n8 root=/dev/mmcblk0p2 rw rootwait'
+setenv bootcmd 'run tftp_kernel tftp_dtb bootkernel'
+run bootcmd

@@ -35,6 +35,7 @@ prepare:
 	$(ADDPKG)	qemu-kvm-extras
 	$(ADDPKG)	squashfs-tools
 	$(ADDPKG)	samba
+	$(ADDPKG)	squashfs-tools
 	$(ADDPKG)	system-config-samba
 	$(ADDPKG)	subversion
 	$(ADDPKG)	texinfo

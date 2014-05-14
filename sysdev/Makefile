@@ -10,6 +10,7 @@ prepare:
 	$(ADDPKG)	automake
 	$(ADDPKG)	bison
 	$(ADDPKG)	build-essential
+	$(ADDPKG)	compizconfig-settings-manager
 	$(ADDPKG)	curl
 	$(ADDPKG)	cvs
 	$(ADDPKG)	emacs
@@ -38,6 +39,8 @@ prepare:
 	$(ADDPKG)	tftpd
 	$(ADDPKG)	tftp
 	$(ADDPKG)	u-boot-tools
+	$(ADDPKG)	vim
+	$(ADDPKG)	wmctrl
 	$(ADDPKG)	vim
 	sudo		adduser	${USER}	dialout
 

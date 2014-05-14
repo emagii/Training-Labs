@@ -2,6 +2,6 @@ build-busybox.sh
 busybox*
 uEnv.txt
 uClibc.tar
-!busybox*.config
+!busybox*.config.*
 *~
 eglibc.tar

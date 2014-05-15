@@ -48,7 +48,7 @@ install:	compile $(NFS_PATH)
 	make	-C	$(BUILDROOT_DIR)	install
 	chmod	a+x	$(BUILD_SCRIPT)
 
-source:		$(BUILDROOT_DIR)
+source:		$(BUILDROOT_DIR)/.extracted
 
 setup:
 	echo	"#!/bin/sh"							>	$(BUILD_SCRIPT)
@@ -61,6 +61,7 @@ $(BUILDROOT_SRC):
 $(BUILDROOT_DIR)/.extracted:	$(BUILDROOT_SRC)
 	@echo	"tar	-jxvf	$(BUILDROOT_SRC)"				>>	$(BUILD_SCRIPT)
 	tar	-jxvf	$(BUILDROOT_SRC)
+	mkdir	downloads
 	ln	-s	../downloads	$(BUILDROOT_DIR)/dl
 	touch	$@
 

@@ -1,0 +1,6 @@
+# Starting the qemu emulator
+
+# sudo qemu-system-arm -M beaglexm -net tap,script=./qemu-ifup -net nic -m 32 -kernel data/vmlinuz-arm-2.6.34 -append "clocksource=pit console=tty0 rw root=/dev/nfs ip=172.20.0.2 nfsroot=172.20.0.1:$HOME/felabs/sysdev/thirdparty/target"
+
+sudo qemu-system-arm -M beaglexm -drive if=sd,cache=writeback,file=./beagle.img -clock unix -serial stdio -device usb-kbd -device usb-mouse -usb -device usb-net,netdev=mynet -netdev user,id=mynet
+

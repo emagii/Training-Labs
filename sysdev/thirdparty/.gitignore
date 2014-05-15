@@ -1,3 +1,5 @@
-staging
-target
+staging/*
+!staging/.empty
+target/*
+!target/.empty
 

@@ -18,6 +18,7 @@ prepare:
 	$(ADDPKG)	emacs
 	$(ADDPKG)	flex
 	$(ADDPKG)	gawk
+	$(ADDPKG)	gftp
 	$(ADDPKG)	gperf
 	$(ADDPKG)	ia32-libs
 	$(ADDPKG)	libexpat1-dev

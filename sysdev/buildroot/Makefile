@@ -61,7 +61,7 @@ $(BUILDROOT_SRC):
 $(BUILDROOT_DIR)/.extracted:	$(BUILDROOT_SRC)
 	@echo	"tar	-jxvf	$(BUILDROOT_SRC)"				>>	$(BUILD_SCRIPT)
 	tar	-jxvf	$(BUILDROOT_SRC)
-	mkdir	downloads
+	mkdir	-p downloads
 	ln	-s	../downloads	$(BUILDROOT_DIR)/dl
 	touch	$@
 

@@ -2,6 +2,15 @@ staging/*
 !staging/.empty
 target/*
 !target/.empty
-zlib-*
 toolchain.sh
+
+zlib-*
+libpng-*
+
+DirectFB-*
+DirectFB-examples-1.2.0*
+freetype-*
+jpeg*
+jpegsrc.v8.tar.gz
+
 

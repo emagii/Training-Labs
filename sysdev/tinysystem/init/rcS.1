@@ -1,0 +1,22 @@
+#! /bin/sh
+
+# /etc/init.d/rcS
+
+echo "mounting /proc "
+mount -t proc proc /proc
+
+echo "mounting /tmp"
+mount -t tmpfs tmpfs /tmp
+
+# echo "mounting /sys"
+# mount -t sysfs sysfs /sys
+
+# echo "Starting system logger"
+# klogd
+# syslogd
+
+# Start dhcp client
+# echo "starting dhcp client on eth0"
+# udhcpc -i eth0
+
+# hostname beaglebone

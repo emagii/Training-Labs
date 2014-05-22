@@ -1,7 +1,8 @@
 # /etc/inittab
 #
 ::sysinit:/etc/init.d/rcS
-ttyO0::respawn:/sbin/getty 115200 ttyO0
+# ttyO0::respawn:/sbin/getty 115200 ttyO0
+ttyO0::respawn:/bin/sh
 ::restart:/sbin/init
 ::shutdown:/bin/umount -a -r
 

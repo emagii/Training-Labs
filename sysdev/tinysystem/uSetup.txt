@@ -11,10 +11,11 @@ nfsopts=nolock
 optargs=video=HDMI-A-1
 
 setpath=setenv rootpath /tftpboot/${image}
+settftp=setenv rootpath /${image}
 setup_ip=setenv ip ${ipaddr}:${serverip}:${gatewayip}:${netmask}:${hostname}::off
 
-tftp_kernel=run setpath ; tftp ${loadaddr} ${rootpath}/${bootdir}/${bootfile}
-tftp_dtb=run setpath    ; tftp ${fdtaddr}  ${rootpath}/${bootdir}/${fdtfile}
+tftp_kernel=run settftp ; tftp ${loadaddr} ${rootpath}/${bootdir}/${bootfile}
+tftp_dtb=run settftp    ; tftp ${fdtaddr}  ${rootpath}/${bootdir}/${fdtfile}
 
 mmcargs=setenv bootargs console=${console} ${optargs} root=${mmcroot}   rootfstype=${mmcrootfstype} rootwait
 mmcrootfstype=squashfs

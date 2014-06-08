@@ -11,7 +11,7 @@ nfsopts=nolock
 optargs=video=HDMI-A-1
 
 setpath=setenv rootpath /tftpboot/${image}
-settftp=setenv rootpath /${image}
+settftp=setenv rootpath ${image}
 setup_ip=setenv ip ${ipaddr}:${serverip}:${gatewayip}:${netmask}:${hostname}::off
 
 tftp_kernel=run settftp ; tftp ${loadaddr} ${rootpath}/${bootdir}/${bootfile}

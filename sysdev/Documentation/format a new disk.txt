@@ -1,0 +1,33 @@
+#!/bin/sh
+
+sudo apt-get install gparted
+
+starta gpartd
+Program->Systemverktyg->Administration->gparted
+
+It will search for disks
+Do NOT format your system disk!
+
+Right Click to remove an unneeded partition
+
+Right click -> New
+
+Primary Partition
+Ext4
+LinuxData
+
+[Add]
+
+Check AGAIN, that you are not formating your system disk
+
+Click the Green Checkbox to starts
+
+Remeber which device., int this case "/dev/sdc2"
+
+cd
+mv felabs felabs.old
+mkdir -p felabs
+sudo mount -t ext4 /dev/sdc2 felabs
+sudo rsync -av felabs.old/ felabs 
+
+Update "/etc/fstab" for automatic mount.

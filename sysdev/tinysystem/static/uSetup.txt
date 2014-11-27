@@ -10,7 +10,7 @@ console=ttyO0,115200n8
 nfsopts=nolock
 optargs=video=HDMI-A-1
 
-setpath=setenv rootpath /tftpboot/${image}
+setpath=setenv rootpath ${image}
 setup_ip=setenv ip ${ipaddr}:${serverip}:${gatewayip}:${netmask}:${hostname}::off
 
 tftp_kernel=run setpath ; tftp ${loadaddr} ${rootpath}/${bootdir}/${bootfile}

@@ -6,7 +6,7 @@ nfs:
 	@echo		"Append the contents of etc_exports to /etc/exports"
 	@echo		"Then run 'exportfs -av'"
 
-tftp:
+tftpd:
 	@sudo		mkdir	-p		/etc/xinetd.d
 	@(if ! [ -e /etc/xinetd.d/tftp ] ; then 			\
 		sudo	cp	tftp	/etc/xinetd.d;		\

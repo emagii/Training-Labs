@@ -20,7 +20,7 @@ prepare:
 	$(ADDPKG)	gawk
 	$(ADDPKG)	gftp
 	$(ADDPKG)	gperf
-	$(ADDPKG)	ia32-libs
+#	$(NOADDPKG)	ia32-libs
 	$(ADDPKG)	libexpat1-dev
 	$(ADDPKG)	libglade2-dev
 	$(ADDPKG)	libglib2.0-dev
@@ -33,7 +33,7 @@ prepare:
 	$(ADDPKG)	patch
 	$(ADDPKG)	picocom
 	$(ADDPKG)	python-dev
-	$(ADDPKG)	qemu-kvm-extras
+# 	$(ADDPKG)	qemu-kvm-extras
 	$(ADDPKG)	squashfs-tools
 	$(ADDPKG)	samba
 	$(ADDPKG)	squashfs-tools

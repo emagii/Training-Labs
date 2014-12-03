@@ -50,7 +50,7 @@ compile:	$(UBOOT_DIR)/$(UBOOT_IMAGE)
 
 patched:	$(UBOOT_DIR)/.patched
 
-install:	$(UBOOT_DIR)/$(UBOOT_IMAGE)	$(UBOOT_ENV)
+install:	$(UBOOT_DIR)/$(UBOOT_IMAGE)	$(UBOOT_ENV) $(UBOOT_SETUP)	
 	@echo	"mkdir	-p	deploy"					>>	$(BUILD_SCRIPT)
 	@echo	"cp	$(UBOOT_DIR)/$(UBOOT_IMAGE)	deploy"		>>	$(BUILD_SCRIPT)
 	@echo	"cp	$(UBOOT_DIR)/MLO		deploy"		>>	$(BUILD_SCRIPT)
@@ -60,7 +60,8 @@ install:	$(UBOOT_DIR)/$(UBOOT_IMAGE)	$(UBOOT_ENV)
 	chmod	a+x	$(BUILD_SCRIPT)
 	cp	$(BUILD_SCRIPT)			deploy
 	cp	$(UBOOT_ENV)			deploy
-
+	cp	$(UBOOT_SETUP)			deploy
+	
 source:		$(UBOOT_DIR)/.extracted
 
 environment:	$(UBOOT_SETUP)	$(UBOOT_ENV)
@@ -121,24 +122,27 @@ $(UBOOT_SETUP):
 	@echo	"serverip=$(SERVER_IP)"					>>	$@
 	@echo	"loadaddr=0x80200000"					>>	$@
 	@echo	"fdtaddr=0x80F80000"					>>	$@
-	@echo	"HOME=/home/ulf"					>>	$@
+	@echo	"IMAGE=rootfs"						>>	$@
 	@echo	"console=ttyO0,115200n8"				>>	$@
 	@echo	"nfsopts=nolock"					>>	$@
-	@echo	'netargs=setenv bootargs console=$${console} root=/dev/nfs nfsroot=$${serverip}:$${HOME}/rootfs,$${nfsopts} rw ip=$${ipaddr}'	>>	$@
+	@echo	'netargs=setenv bootargs console=$${console} root=/dev/nfs nfsroot=$${serverip}:/tftpboot/$${IMAGE},$${nfsopts} rw ip=$${ipaddr}'	>>	$@
 	@echo	'tftp_kernel=tftp $${loadaddr} zImage'			>>	$@
 	@echo	'tftp_dtb=tftp $${fdtaddr} am335x-boneblack.dtb'	>>	$@
 	@echo	'bootkernel=bootz $${loadaddr} - $${fdtaddr}'		>>	$@
+	@echo	'mmcargs=setenv bootargs console=$${console} $${optargs} root=$${mmcroot} rootfstype=$${mmcrootfstype} rootwait'	>>	$@
+	@echo	"mmcrootfstype=squashfs"				>>	$@
 	@echo	"nandboot=echo NAND boot disabled"			>>	$@
+	@echo	"bootcmd=run tftp_kernel tftp_dtb netargs bootkernel"	>>	$@
 
 $(UBOOT_ENV):
 	@echo	"ipaddr=$(IPADDR)"					>	$@
 	@echo	"serverip=$(SERVER_IP)"					>>	$@
 	@echo	"loadaddr=0x80200000"					>>	$@
 	@echo	"fdtaddr=0x80F80000"					>>	$@
-	@echo	"HOME=/home/ulf"					>>	$@
+	@echo	"IMAGE=rootfs"						>>	$@
 	@echo	"console=ttyO0,115200n8"				>>	$@
 	@echo	"nfsopts=nolock"					>>	$@
-	@echo	'netargs=setenv bootargs console=$${console} root=/dev/nfs nfsroot=$${serverip}:$${HOME}/rootfs,$${nfsopts} rw ip=$${ipaddr}'	>>	$@
+	@echo	'netargs=setenv bootargs console=$${console} root=/dev/nfs nfsroot=$${serverip}:/tftpboot/$${IMAGE},$${nfsopts} rw ip=$${ipaddr}'	>>	$@
 	@echo	'tftp_kernel=tftp $${loadaddr} zImage'			>>	$@
 	@echo	'tftp_dtb=tftp $${fdtaddr} am335x-boneblack.dtb'	>>	$@
 	@echo	'bootkernel=bootz $${loadaddr} - $${fdtaddr}'		>>	$@

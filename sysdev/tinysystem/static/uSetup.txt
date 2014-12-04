@@ -1,0 +1,44 @@
+ipaddr=192.168.0.100
+serverip=192.168.0.1
+loadaddr=0x80200000
+fdtaddr=0x88000000
+
+bootdir=/boot
+bootfile=zImage
+
+console=ttyO0,115200n8
+nfsopts=nolock
+optargs=video=HDMI-A-1
+
+setpath=setenv rootpath /tftpboot/${image}
+settftp=setenv rootpath ${image}
+setup_ip=setenv ip ${ipaddr}:${serverip}:${gatewayip}:${netmask}:${hostname}::off
+
+tftp_kernel=run settftp ; tftp ${loadaddr} ${rootpath}/${bootdir}/${bootfile}
+tftp_dtb=run settftp    ; tftp ${fdtaddr}  ${rootpath}/${bootdir}/${fdtfile}
+
+mmcargs=setenv bootargs console=${console} ${optargs} root=${mmcroot}   rootfstype=${mmcrootfstype} rootwait
+mmcrootfstype=squashfs
+nandboot=echo NAND boot disabled
+
+bootzImage=if test "${bootfile}" = "zImage"; then bootz ${loadaddr} - ${fdtaddr}; fi
+bootuImage=if test "${bootfile}" = "uImage"; then bootm ${loadaddr} - ${fdtaddr}; fi
+bootkernel=run bootzImage ; run bootuImage
+
+netargs=run setpath; run setup_ip ; setenv bootargs console=${console} ${optargs} root=/dev/nfs nfsroot=${serverip}:${rootpath},${nfsopts} rw ip=${ip}
+netboot=echo Booting from network ...; run findfdt; setenv autoload no; run tftp_kernel ; run tftp_dtb ; run netargs; bootm ${loadaddr} - ${fdtaddr}
+
+# image=core-image-minimal
+image=busybox.static
+br=setenv         image buildroot          ; setenv bootfile zImage ; run bootcmd
+dynamic=setenv    image busybox.dynamic    ; setenv bootfile zImage ; run bootcmd
+httpd=setenv      image busybox.httpd      ; setenv bootfile zImage ; run bootcmd
+static=setenv     image busybox.static     ; setenv bootfile zImage ; run bootcmd
+
+thirdparty=setenv image thirdparty         ; setenv bootfile zImage ; run bootcmd
+
+minimal=setenv    image core-image-minimal ; setenv bootfile uImage ; run bootcmd
+base=setenv       image core-image-base    ; setenv bootfile uImage ; run bootcmd
+cato=setenv       image core-image-cato    ; setenv bootfile uImage ; run bootcmd
+
+bootcmd=run findfdt ; run tftp_kernel tftp_dtb netargs bootkernel

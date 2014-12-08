@@ -187,7 +187,7 @@ $(BUSYBOX_DIR)/$(BUSYBOX_IMAGE):	$(MACHINE_CONFIG)
 	@echo	"Perform"
 	@echo	"cd $(BUSYBOX_DIR)"
 	@echo	"make"
-	@echo
+	@echo   "Compiling using 'make' does not work, do it manually"
 	exit	2
 
 $(BUSYBOX_IMAGE):	$(BUSYBOX_DIR)/$(BUSYBOX_IMAGE)

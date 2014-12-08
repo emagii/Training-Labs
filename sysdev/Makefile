@@ -1,9 +1,19 @@
 ADDPKG=sudo apt-get -y install
 
+UBUNTU:=$(shell lsb_release -s -r)
+ARCH:=$(shell uname -m)
+
 include	host.mk
 
+ifeq ($(ARCH),x86_64)
 all:	prepare	nfs toolchain
+else
+all:
+	@echo	"Labs cannot be run on 32 bit Linux"
+endif
 
+version:
+	
 prepare:
 	@echo	Adding packages neccessary for build
 	$(ADDPKG)	autoconf
@@ -20,7 +30,9 @@ prepare:
 	$(ADDPKG)	gawk
 	$(ADDPKG)	gftp
 	$(ADDPKG)	gperf
+ifeq ($(UBUNTU),12.04)
 	$(ADDPKG)	ia32-libs
+endif
 	$(ADDPKG)	libexpat1-dev
 	$(ADDPKG)	libglade2-dev
 	$(ADDPKG)	libglib2.0-dev
@@ -33,7 +45,9 @@ prepare:
 	$(ADDPKG)	patch
 	$(ADDPKG)	picocom
 	$(ADDPKG)	python-dev
+ifeq ($(UBUNTU),12.04)
 	$(ADDPKG)	qemu-kvm-extras
+endif
 	$(ADDPKG)	squashfs-tools
 	$(ADDPKG)	samba
 	$(ADDPKG)	squashfs-tools

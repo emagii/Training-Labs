@@ -1,11 +1,11 @@
 include	../host.mk
-
+CPUS=$(shell cat /proc/cpuinfo | grep processor | wc -l)
 INSTALL_PATH=$(NFS_PATH)
 BUILD_SCRIPT=build-kernel.sh
 
 TOPDIR=`pwd`
 TARGETS=install
-MAKE=make $(XMAKEFLAGS)
+MAKE=make -j $(CPUS)
 
 
 ifneq ("$(ARCH)","arm")

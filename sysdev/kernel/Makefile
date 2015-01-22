@@ -67,21 +67,42 @@ install:	compile	$(NFS_PATH)
 	chmod	a+x	$(BUILD_SCRIPT)
 
 setup:
-	echo	"#!/bin/sh"						>	$(BUILD_SCRIPT)
+	echo	"#!/bin/sh"								>	$(BUILD_SCRIPT)
 
 $(KERNEL_SRC):
-	@echo	"wget	$(SRC_URI)/$(KERNEL_SRC)"			>>	$(BUILD_SCRIPT)
+	@echo	"wget	$(SRC_URI)/$(KERNEL_SRC)"					>>			$(BUILD_SCRIPT)
 	wget	$(SRC_URI)/$(KERNEL_SRC)
 	touch	$@
 
 $(KERNEL_DIR)/.extracted:	$(KERNEL_SRC)
-	@echo	"tar	-Jxvf	$(KERNEL_SRC)"				>>	$(BUILD_SCRIPT)
+	@echo	"tar	-Jxvf	$(KERNEL_SRC)"						>>			$(BUILD_SCRIPT)
 	tar	-Jxvf	$(KERNEL_SRC)
 	touch	$@
 
 $(MACHINE_CONFIG):	$(KERNEL_DIR)/.extracted
-	@echo	"$(MAKE) -C $(KERNEL_DIR)	$(BOARD_CONFIG)"	>>	$(BUILD_SCRIPT)
+	@echo	"$(MAKE) -C $(KERNEL_DIR)	$(BOARD_CONFIG)"			>>			$(BUILD_SCRIPT)
 	$(MAKE) -C $(KERNEL_DIR)	$(BOARD_CONFIG)
+	sed	-i 's/CONFIG_KERNEL_GZIP=y/CONFIG_KERNEL_XZ=y/g'						$(MACHINE_CONFIG)
+	sed	-i 's/CONFIG_FB_CFB_FILLRECT=m/CONFIG_FB_CFB_FILLRECT=y/g'					$(MACHINE_CONFIG)
+	sed	-i 's/CONFIG_FB_CFB_COPYAREA=m/CONFIG_FB_CFB_COPYAREA=y/g'					$(MACHINE_CONFIG)
+	sed	-i 's/CONFIG_FB_CFB_IMAGEBLIT=m/CONFIG_FB_CFB_IMAGEBLIT=y/g'					$(MACHINE_CONFIG)
+	sed	-i 's/# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set/CONFIG_FB_CFB_REV_PIXELS_IN_BYTE=y/g'	$(MACHINE_CONFIG)
+	sed	-i 's/# CONFIG_FB_DA8XX is not set/CONFIG_FB_DA8XX=y/g'						$(MACHINE_CONFIG)
+	sed	-i 's/# CONFIG_SQUASHFS is not set/CONFIG_SQUASHFS=y/g'						$(MACHINE_CONFIG)
+	echo	"CONFIG_SQUASHFS_FILE_CACHE=y"						>>			$(MACHINE_CONFIG)
+	echo	"# CONFIG_SQUASHFS_FILE_DIRECT is not set"				>>			$(MACHINE_CONFIG)
+	echo	"CONFIG_SQUASHFS_DECOMP_SINGLE=y"					>>			$(MACHINE_CONFIG)
+	echo	"# CONFIG_SQUASHFS_DECOMP_MULTI is not set"				>>			$(MACHINE_CONFIG)
+	echo	"# CONFIG_SQUASHFS_DECOMP_MULTI_PERCPU is not set"			>>			$(MACHINE_CONFIG)
+	echo	"# CONFIG_SQUASHFS_XATTR is not set"					>>			$(MACHINE_CONFIG)
+	echo	"CONFIG_SQUASHFS_ZLIB=y"						>>			$(MACHINE_CONFIG)
+	echo	"# CONFIG_SQUASHFS_LZO is not set"					>>			$(MACHINE_CONFIG)
+	echo	"# CONFIG_SQUASHFS_XZ is not set"					>>			$(MACHINE_CONFIG)
+	echo	"# CONFIG_SQUASHFS_4K_DEVBLK_SIZE is not set"				>>			$(MACHINE_CONFIG)
+	echo	"# CONFIG_SQUASHFS_EMBEDDED is not set"					>>			$(MACHINE_CONFIG)
+	echo	"CONFIG_SQUASHFS_FRAGMENT_CACHE_SIZE=3"					>>			$(MACHINE_CONFIG)
+#	echo	""			>>	$(MACHINE_CONFIG)
+#	sed	-i s///g			$(MACHINE_CONFIG)
 
 $(KERNEL_IMAGE_DIR)/$(KERNEL_IMAGE):	$(MACHINE_CONFIG)
 	@echo	"$(MAKE) -C $(KERNEL_DIR)	LOADADDR=0x80008000 $@"	>>	$(BUILD_SCRIPT)

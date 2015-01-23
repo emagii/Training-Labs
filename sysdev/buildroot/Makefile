@@ -6,6 +6,20 @@ TOPDIR=`pwd`
 TARGETS=install
 MAKE=make
 
+SRC_URI=http://www.buildroot.org/downloads/
+# BUILDROOT_VERSION=2013.11
+BUILDROOT_VERSION=2014.02
+BUILDROOT=buildroot-$(BUILDROOT_VERSION)
+BUILDROOT_SRC=$(BUILDROOT).tar.bz2
+BUILDROOT_DIR=$(BUILDROOT)
+
+MACHINE_CONFIG=$(BUILDROOT_DIR)/.config
+BOARD_CONFIG=beaglebone_defconfig
+IMAGE_DIR=$(BUILDROOT_DIR)/output/images
+BUILDROOT_IMAGE=$(IMAGE_DIR)/rootfs.tar.gz
+
+DEPLOY_DIR=deploy/$(BUILDROOT_VERSION)
+
 ifneq ("$(ARCH)","arm")
 TARGETS=help
 configure:	help
@@ -21,19 +35,6 @@ install:	help
 else
 
 
-SRC_URI=http://www.buildroot.org/downloads/
-# BUILDROOT_VERSION=2013.11
-BUILDROOT_VERSION=2014.02
-BUILDROOT=buildroot-$(BUILDROOT_VERSION)
-BUILDROOT_SRC=$(BUILDROOT).tar.bz2
-BUILDROOT_DIR=$(BUILDROOT)
-
-MACHINE_CONFIG=$(BUILDROOT_DIR)/.config
-BOARD_CONFIG=beaglebone_defconfig
-IMAGE_DIR=$(BUILDROOT_DIR)/output/images
-BUILDROOT_IMAGE=$(IMAGE_DIR)/rootfs.tar.gz
-
-DEPLOY_DIR=deploy/$(BUILDROOT_VERSION)
 
 all:	setup	$(TARGETS)
 
@@ -67,6 +68,7 @@ $(BUILDROOT_DIR)/.extracted:	$(BUILDROOT_SRC)
 
 $(MACHINE_CONFIG):	$(BUILDROOT_DIR)/.extracted
 	$(MAKE) -C	$(BUILDROOT_DIR)	$(BOARD_CONFIG)
+	cp	beaglebone.config		$(BUILDROOT_DIR)/.config
 
 $(BUILDROOT_IMAGE):	$(MACHINE_CONFIG)
 	$(MAKE) -C $(BUILDROOT_DIR)
@@ -99,6 +101,10 @@ uEnv.txt:
 clean:
 	rm	-fr	$(BUILDROOT_DIR)
 	rm	-f	uEnv.txt
+	rm	-f build-buildroot.sh
+distclean:
+	rm	-f	$(BUILDROOT).tar.bz2
+	rm	-fr	downloads
 
 help:
 	@echo "You need to have a valid arm-linux-gcc"

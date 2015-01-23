@@ -62,16 +62,24 @@ $(BUILDROOT_SRC):
 $(BUILDROOT_DIR)/.extracted:	$(BUILDROOT_SRC)
 	@echo	"tar	-jxvf	$(BUILDROOT_SRC)"				>>	$(BUILD_SCRIPT)
 	tar	-jxvf	$(BUILDROOT_SRC)
+	@echo	"mkdir	-p downloads"						>>	$(BUILD_SCRIPT)
 	mkdir	-p downloads
+	@echo	"ln	-s	../downloads	$(BUILDROOT_DIR)/dl"		>>	$(BUILD_SCRIPT)
 	ln	-s	../downloads	$(BUILDROOT_DIR)/dl
 	touch	$@
 
 $(MACHINE_CONFIG):	$(BUILDROOT_DIR)/.extracted
+	@echo	"$(MAKE) -C	$(BUILDROOT_DIR)	$(BOARD_CONFIG)"	>>	$(BUILD_SCRIPT)
 	$(MAKE) -C	$(BUILDROOT_DIR)	$(BOARD_CONFIG)
+	@echo	"# Update your config manually"	>>	$(BUILD_SCRIPT)
+	@echo	"# Here we use a modified config file"				>>	$(BUILD_SCRIPT)
+	@echo	"cp	beaglebone.config $(BUILDROOT_DIR)/.config"		>>	$(BUILD_SCRIPT)
 	cp	beaglebone.config		$(BUILDROOT_DIR)/.config
 
 $(BUILDROOT_IMAGE):	$(MACHINE_CONFIG)
+	@echo	"$(MAKE) -C $(BUILDROOT_DIR)"					>>	$(BUILD_SCRIPT)
 	$(MAKE) -C $(BUILDROOT_DIR)
+	@echo	"cp	$(BUILDROOT_DIR)/output/boot/$(BUILDROOT_IMAGE)	$(BUILDROOT_IMAGE)"	>>	$(BUILD_SCRIPT)
 	cp	$(BUILDROOT_DIR)/output/boot/$(BUILDROOT_IMAGE)	$(BUILDROOT_IMAGE)
 
 $(DEPLOY_DIR):	uEnv.txt
